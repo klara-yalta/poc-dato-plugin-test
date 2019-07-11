@@ -1,0 +1,266 @@
+"use strict";
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+exports.default = void 0;
+
+var _ora = _interopRequireDefault(require("ora"));
+
+var _progress = _interopRequireDefault(require("./progress"));
+
+var _toApiKey = require("./toApiKey");
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+function _objectSpread(target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i] != null ? arguments[i] : {}; var ownKeys = Object.keys(source); if (typeof Object.getOwnPropertySymbols === 'function') { ownKeys = ownKeys.concat(Object.getOwnPropertySymbols(source).filter(function (sym) { return Object.getOwnPropertyDescriptor(source, sym).enumerable; })); } ownKeys.forEach(function (key) { _defineProperty(target, key, source[key]); }); } return target; }
+
+function _slicedToArray(arr, i) { return _arrayWithHoles(arr) || _iterableToArrayLimit(arr, i) || _nonIterableRest(); }
+
+function _nonIterableRest() { throw new TypeError("Invalid attempt to destructure non-iterable instance"); }
+
+function _iterableToArrayLimit(arr, i) { var _arr = []; var _n = true; var _d = false; var _e = undefined; try { for (var _i = arr[Symbol.iterator](), _s; !(_n = (_s = _i.next()).done); _n = true) { _arr.push(_s.value); if (i && _arr.length === i) break; } } catch (err) { _d = true; _e = err; } finally { try { if (!_n && _i["return"] != null) _i["return"](); } finally { if (_d) throw _e; } } return _arr; }
+
+function _arrayWithHoles(arr) { if (Array.isArray(arr)) return arr; }
+
+function _defineProperty(obj, key, value) { if (key in obj) { Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); } else { obj[key] = value; } return obj; }
+
+function asyncGeneratorStep(gen, resolve, reject, _next, _throw, key, arg) { try { var info = gen[key](arg); var value = info.value; } catch (error) { reject(error); return; } if (info.done) { resolve(value); } else { Promise.resolve(value).then(_next, _throw); } }
+
+function _asyncToGenerator(fn) { return function () { var self = this, args = arguments; return new Promise(function (resolve, reject) { var gen = fn.apply(self, args); function _next(value) { asyncGeneratorStep(gen, resolve, reject, _next, _throw, "next", value); } function _throw(err) { asyncGeneratorStep(gen, resolve, reject, _next, _throw, "throw", err); } _next(undefined); }); }; }
+
+var _require = require('humps'),
+    camelize = _require.camelize;
+
+var _default =
+/*#__PURE__*/
+function () {
+  var _ref2 = _asyncToGenerator(
+  /*#__PURE__*/
+  regeneratorRuntime.mark(function _callee(_ref) {
+    var itemTypes, fieldsMapping, datoClient, contentfulData, spinner, entries, defaultLocale, progress, contentfulRecordMap, recordsToPublish, _iteratorNormalCompletion, _didIteratorError, _iteratorError, _loop, _iterator, _step;
+
+    return regeneratorRuntime.wrap(function _callee$(_context2) {
+      while (1) {
+        switch (_context2.prev = _context2.next) {
+          case 0:
+            itemTypes = _ref.itemTypes, fieldsMapping = _ref.fieldsMapping, datoClient = _ref.datoClient, contentfulData = _ref.contentfulData;
+            spinner = (0, _ora.default)('').start();
+            entries = contentfulData.entries, defaultLocale = contentfulData.defaultLocale;
+            progress = new _progress.default(entries.length, 'Creating records');
+            contentfulRecordMap = {};
+            recordsToPublish = [];
+            spinner.text = progress.tick();
+            _iteratorNormalCompletion = true;
+            _didIteratorError = false;
+            _iteratorError = undefined;
+            _context2.prev = 10;
+            _loop =
+            /*#__PURE__*/
+            regeneratorRuntime.mark(function _loop() {
+              var entry, contentType, contentTypeApiKey, itemType, itemTypeFields, emptyFieldValues, recordAttributes, record;
+              return regeneratorRuntime.wrap(function _loop$(_context) {
+                while (1) {
+                  switch (_context.prev = _context.next) {
+                    case 0:
+                      entry = _step.value;
+                      contentType = entry.sys.contentType;
+                      contentTypeApiKey = (0, _toApiKey.toItemApiKey)(contentType.sys.id);
+                      itemType = itemTypes.find(function (iT) {
+                        return iT.apiKey === contentTypeApiKey;
+                      });
+                      itemTypeFields = fieldsMapping[contentTypeApiKey];
+
+                      if (!itemType) {
+                        _context.next = 21;
+                        break;
+                      }
+
+                      emptyFieldValues = itemTypeFields.reduce(function (accFields, field) {
+                        if (field.localized) {
+                          var value = contentfulData.locales.map(function (locale) {
+                            return locale.slice(0, 2);
+                          }).reduce(function (accLocales, locale) {
+                            return Object.assign(accLocales, _defineProperty({}, locale, null));
+                          }, {});
+                          return Object.assign(accFields, _defineProperty({}, camelize(field.apiKey), value));
+                        }
+
+                        return Object.assign(accFields, _defineProperty({}, camelize(field.apiKey), null));
+                      }, {});
+                      recordAttributes = Object.entries(entry.fields).reduce(function (acc, _ref3) {
+                        var _ref4 = _slicedToArray(_ref3, 2),
+                            option = _ref4[0],
+                            value = _ref4[1];
+
+                        var apiKey = (0, _toApiKey.toFieldApiKey)(option);
+                        var field = itemTypeFields.find(function (f) {
+                          return f.apiKey === apiKey;
+                        });
+
+                        switch (field.fieldType) {
+                          case 'link':
+                          case 'links':
+                          case 'file':
+                          case 'gallery':
+                            return acc;
+
+                          default:
+                            break;
+                        }
+
+                        if (field.localized) {
+                          var localizedValue = Object.keys(value).reduce(function (innerAcc, locale) {
+                            var innerValue = value[locale];
+
+                            if (field.fieldType === 'lat_lon') {
+                              innerValue = {
+                                latitude: innerValue.lat,
+                                longitude: innerValue.lon
+                              };
+                            }
+
+                            if (field.fieldType === 'string' && Array.isArray(innerValue)) {
+                              innerValue = innerValue.join(', ');
+                            }
+
+                            if (field.fieldType === 'json') {
+                              innerValue = JSON.stringify(innerValue, null, 2);
+                            }
+
+                            return Object.assign(innerAcc, _defineProperty({}, locale.slice(0, 2), innerValue));
+                          }, {});
+                          var fallbackValues = contentfulData.locales.reduce(function (accLocales, locale) {
+                            return Object.assign(accLocales, _defineProperty({}, locale.slice(0, 2), localizedValue[defaultLocale.slice(0, 2)]));
+                          }, {});
+                          return Object.assign(acc, _defineProperty({}, camelize(apiKey), _objectSpread({}, fallbackValues, localizedValue)));
+                        }
+
+                        var innerValue = value[defaultLocale];
+
+                        if (field.fieldType === 'lat_lon') {
+                          innerValue = {
+                            latitude: innerValue.lat,
+                            longitude: innerValue.lon
+                          };
+                        }
+
+                        if (field.fieldType === 'string' && Array.isArray(innerValue)) {
+                          innerValue = innerValue.join(', ');
+                        }
+
+                        if (field.fieldType === 'json') {
+                          innerValue = JSON.stringify(innerValue, null, 2);
+                        }
+
+                        return Object.assign(acc, _defineProperty({}, camelize(apiKey), innerValue));
+                      }, emptyFieldValues);
+                      _context.prev = 8;
+                      _context.next = 11;
+                      return datoClient.items.create(_objectSpread({}, recordAttributes, {
+                        itemType: itemType.id.toString()
+                      }));
+
+                    case 11:
+                      record = _context.sent;
+
+                      if (entry.sys.publishedVersion) {
+                        recordsToPublish.push(record.id);
+                      }
+
+                      spinner.text = progress.tick();
+                      contentfulRecordMap[entry.sys.id] = record.id;
+                      _context.next = 21;
+                      break;
+
+                    case 17:
+                      _context.prev = 17;
+                      _context.t0 = _context["catch"](8);
+
+                      if (_context.t0.body && _context.t0.body.data && _context.t0.body.data.some(function (d) {
+                        return d.id === 'ITEMS_QUOTA_EXCEEDED';
+                      })) {
+                        spinner.fail('You\'ve reached your site\'s plan record limit: upgrade to complete the import');
+                      } else {
+                        spinner.fail(_context.t0);
+                      }
+
+                      process.exit();
+
+                    case 21:
+                    case "end":
+                      return _context.stop();
+                  }
+                }
+              }, _loop, this, [[8, 17]]);
+            });
+            _iterator = entries[Symbol.iterator]();
+
+          case 13:
+            if (_iteratorNormalCompletion = (_step = _iterator.next()).done) {
+              _context2.next = 18;
+              break;
+            }
+
+            return _context2.delegateYield(_loop(), "t0", 15);
+
+          case 15:
+            _iteratorNormalCompletion = true;
+            _context2.next = 13;
+            break;
+
+          case 18:
+            _context2.next = 24;
+            break;
+
+          case 20:
+            _context2.prev = 20;
+            _context2.t1 = _context2["catch"](10);
+            _didIteratorError = true;
+            _iteratorError = _context2.t1;
+
+          case 24:
+            _context2.prev = 24;
+            _context2.prev = 25;
+
+            if (!_iteratorNormalCompletion && _iterator.return != null) {
+              _iterator.return();
+            }
+
+          case 27:
+            _context2.prev = 27;
+
+            if (!_didIteratorError) {
+              _context2.next = 30;
+              break;
+            }
+
+            throw _iteratorError;
+
+          case 30:
+            return _context2.finish(27);
+
+          case 31:
+            return _context2.finish(24);
+
+          case 32:
+            spinner.succeed();
+            return _context2.abrupt("return", {
+              contentfulRecordMap: contentfulRecordMap,
+              recordsToPublish: recordsToPublish
+            });
+
+          case 34:
+          case "end":
+            return _context2.stop();
+        }
+      }
+    }, _callee, this, [[10, 20, 24, 32], [25,, 27, 31]]);
+  }));
+
+  return function (_x) {
+    return _ref2.apply(this, arguments);
+  };
+}();
+
+exports.default = _default;
