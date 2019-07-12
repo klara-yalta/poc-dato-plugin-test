@@ -14,7 +14,7 @@ module.exports = {
   devServer: {
     contentBase: './',
     disableHostCheck: true,
-    public: 'https://datocms-plugin-field-editor-plugin.localtunnel.me',
+    public: 'https://datocms-plugin-field-editor-plugin.localtunnel.me'
   },
   module: {
     rules: [
@@ -22,19 +22,16 @@ module.exports = {
         test: /\.jsx?$/,
         include: __dirname + '/src',
         loader: 'eslint-loader',
-        enforce: 'pre',
+        enforce: 'pre'
       },
       {
         test: /\.jsx?$/,
         exclude: /(node_modules|bower_components)/,
-        use: { loader: 'babel-loader' } },
+        use: { loader: 'babel-loader' }
+      },
       {
         test: /\.sass$/,
-        use: [
-          "style-loader",
-          "css-loader",
-          "sass-loader"
-        ]
+        use: ['style-loader', 'css-loader', 'sass-loader']
       },
       {
         test: /\.svg/,
@@ -42,24 +39,24 @@ module.exports = {
           loader: 'svg-url-loader',
           options: {}
         }
-      },
-    ],
+      }
+    ]
   },
   resolve: {
-    extensions: ['.js', '.jsx'],
+    extensions: ['.js', '.jsx']
   },
   plugins: [
     new HtmlWebpackPlugin({
       title: 'DatoCMS plugin',
-      minify: isProduction,
+      minify: isProduction
     }),
     new HtmlWebpackIncludeAssetsPlugin({
       append: false,
       publicPath: '',
       assets: [
         'https://unpkg.com/datocms-plugins-sdk@0.0.6/dist/sdk.js',
-        'https://unpkg.com/datocms-plugins-sdk@0.0.6/dist/sdk.css',
+        'https://unpkg.com/datocms-plugins-sdk@0.0.6/dist/sdk.css'
       ]
-    }),
-  ].filter(Boolean),
-}
+    })
+  ].filter(Boolean)
+};

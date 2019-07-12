@@ -5,10 +5,10 @@
   "description": "A basic field editor plugin",
   "main": "index.js",
   "scripts": {
+    "build": "NODE_ENV=production webpack --progress",
     "start": "concurrently \"yarn dev\" \"yarn localtunnel\"",
     "localtunnel": "lt -s datocms-plugin-field-editor-plugin --port 5000",
     "dev": "NODE_ENV=development webpack-dev-server --port 5000",
-    "dist": "NODE_ENV=production webpack --progress",
     "prepublishOnly": "rimraf lib dist && mkdir dist && npm run dist",
     "addToProject": "yo datocms-plugin:add-to-project",
     "test": "echo 1"
@@ -113,6 +113,7 @@
     "@emotion/core": "^10.0.14",
     "@emotion/styled": "^10.0.14",
     "classname": "^0.0.0",
+    "cross-env": "^5.2.0",
     "datocms-client": "^2.0.7",
     "eslint-config-prettier": "^6.0.0",
     "eslint-plugin-html": "^6.0.0",
